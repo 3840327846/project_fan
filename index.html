@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>游戏</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <!-- 左侧存档功能区 -->
+            <div class="nav-left">
+                <div class="save-load-buttons" style="display: none;">
+                    <button class="nav-save-btn" id="navSaveBtn" title="保存游戏" style="display: none;">
+                        💾 保存
+                    </button>
+                    <button class="nav-load-btn" id="navLoadBtn" title="读取存档" style="display: none;">
+                        📁 读取
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 右侧金币显示区（保持原有功能） -->
+            <div class="nav-right">
+                <!-- 金币显示等其他内容将通过JavaScript动态添加 -->
+            </div>
+        </div>
+    </nav>
+
+    <!-- 游戏主体区域 -->
+    <main class="game-container">
+        <!-- 关卡选择面板 -->
+        <div class="level-panel" id="levelPanel">
+            <h3 class="panel-title">切换地区</h3>
+            <div class="panel-content">
+                <!-- 关卡选择内容将通过JavaScript动态生成 -->
+            </div>
+        </div>
+        
+        <!-- 关卡区域 -->
+        <div class="game-area" id="gameArea">
+            <canvas id="gameCanvas" width="1200" height="768"></canvas>
+        </div>
+        
+        <!-- 操作区域 -->
+        <div class="control-panel" id="controlPanel">
+            <div class="control-content">
+                <!-- 操作内容将通过JavaScript动态生成 -->
+            </div>
+        </div>
+    </main>
+
+    <!-- 开发者功能按钮 -->
+    <button class="developer-button" id="developerButton" title="开发者功能">
+        🛠️
+    </button>
+    
+    <!-- 开发者功能面板 -->
+    <div class="developer-panel" id="developerPanel">
+        <div class="developer-panel-title">开发者功能</div>
+        <div class="developer-function">
+            <button class="developer-btn gold-btn" id="addGoldBtn">
+                💰 +1000 金币
+            </button>
+        </div>
+        <div class="developer-function">
+            <button class="developer-btn egg-btn" id="getAllEggsBtn">
+                🥚 获得每种蛋1个
+            </button>
+        </div>
+        <div class="developer-function">
+            <button class="developer-btn level-btn" id="levelUpAllBtn">
+                ⬆️ 所有角色等级+1
+            </button>
+        </div>
+        <div class="developer-function">
+            <button class="developer-btn skill-btn" id="getAllSkillBooksBtn">
+                📚 获得每种技能书1本
+            </button>
+        </div>
+        <div class="developer-function">
+            <button class="developer-btn mana-btn" id="restoreAllManaBtn">
+                💙 所有角色恢复100魔法值
+            </button>
+        </div>
+        <div class="developer-function">
+            <button class="developer-btn materials-btn" id="addMaterialsBtn">
+                🔨 添加制作材料
+            </button>
+        </div>
+        <div class="developer-function">
+            <button class="developer-btn consumable-btn" id="addExpNotesBtn">
+                📓 获得经验笔记×10
+            </button>
+        </div>
+        <div class="developer-function">
+            <button class="developer-btn food-btn" id="getAllFoodsBtn">
+                🍽️ 获得所有食物×100
+            </button>
+        </div>
+        <div class="developer-function">
+            <button class="developer-btn kill-btn" id="addKillProgressBtn">
+                ⚔️ 击杀进度+15
+            </button>
+        </div>
+        <div class="developer-function" style="display: none;">
+            <button class="developer-btn save-btn" id="saveGameBtn">
+                💾 保存游戏
+            </button>
+        </div>
+        <div class="developer-function" style="display: none;">
+            <button class="developer-btn load-btn" id="loadGameBtn">
+                📁 读取存档
+            </button>
+        </div>
+        <div class="developer-function" style="display: none;">
+            <button class="developer-btn delete-btn" id="deleteSaveBtn">
+                🗑️ 删除存档
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 全局错误处理
+        window.addEventListener('error', function(e) {
+            console.error('JavaScript Error:', e.error);
+            
+            // 显示错误信息在面板中
+            const panelContent = document.querySelector('.panel-content');
+            const controlContent = document.querySelector('.control-content');
+            
+            const errorMessage = `
+                <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 6px; margin: 10px 0; border: 1px solid #f5c6cb;">
+                    <strong>游戏加载错误:</strong><br>
+                    ${e.message}<br>
+                    <small>请刷新页面重试</small><br>
+                    <button onclick="window.location.reload()" style="margin-top: 10px; padding: 8px 16px; border: none; border-radius: 4px; background: #007bff; color: white; cursor: pointer;">
+                        重新加载
+                    </button>
+                </div>
+            `;
+            
+            if (panelContent) panelContent.innerHTML = errorMessage;
+            if (controlContent) controlContent.innerHTML = errorMessage;
+        });
+        
+        // 检查游戏初始化状态
+        function checkGameInitialization() {
+            let attempts = 0;
+            const maxAttempts = 10;
+            
+            const checkInterval = setInterval(() => {
+                attempts++;
+                
+                if (window.game && typeof window.game === 'object') {
+                    console.log('✅ Game initialized successfully!');
+                    clearInterval(checkInterval);
+                    return;
+                }
+                
+                if (attempts >= maxAttempts) {
+                    console.error('❌ Game failed to initialize after', maxAttempts, 'attempts');
+                    clearInterval(checkInterval);
+                    
+                    // 尝试手动初始化
+                    try {
+                        if (typeof Game !== 'undefined') {
+                            console.log('Attempting manual game initialization...');
+                            const game = new Game();
+                            window.game = game;
+                            console.log('✅ Manual initialization successful!');
+                        } else {
+                            throw new Error('Game class not defined');
+                        }
+                    } catch (error) {
+                        console.error('Manual initialization failed:', error);
+                        
+                        const panelContent = document.querySelector('.panel-content');
+                        const controlContent = document.querySelector('.control-content');
+                        
+                        const errorMessage = `
+                            <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 6px; margin: 10px 0; border: 1px solid #f5c6cb;">
+                                <strong>游戏初始化失败</strong><br>
+                                无法正常加载游戏，请检查浏览器控制台获取详细错误信息。<br>
+                                <button onclick="window.location.reload()" style="margin-top: 10px; padding: 8px 16px; border: none; border-radius: 4px; background: #007bff; color: white; cursor: pointer;">
+                                    重新加载页面
+                                </button>
+                            </div>
+                        `;
+                        
+                        if (panelContent) panelContent.innerHTML = errorMessage;
+                        if (controlContent) controlContent.innerHTML = errorMessage;
+                    }
+                }
+                
+                console.log(`Checking game initialization... (${attempts}/${maxAttempts})`);
+            }, 1000);
+        }
+        
+        // 页面加载完成后开始检查
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(checkGameInitialization, 2000);
+        });
+    </script>
+    
+    <script src="game.js"></script>
+</body>
+</html>
